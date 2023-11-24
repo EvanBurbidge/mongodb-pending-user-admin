@@ -27,14 +27,11 @@ export default function Home() {
   const [filteredData, setFilteredData] = useState([]);
   const [syncLoading, setSyncLoading] = useState(false);
 
-  console.log(user);
-
   const fetchData = async () => {
     const { data } = await supabaseClient
       .from('PendingUsers')
       .select()
       .ilike('email', `%${filter}%`);
-    console.log(data);
     setFilteredData(data);
   }
 
@@ -57,7 +54,7 @@ export default function Home() {
     if (user) {
       fetchData();
     }
-  }, [filter]);
+  }, [filter, user]);
 
   if (!user)
     return (
@@ -70,6 +67,8 @@ export default function Home() {
             appearance={{ theme: ThemeSupa }}
             supabaseClient={supabaseClient}
             providers={[]}
+            showLinks={false}
+            view="sign_in"
           />
         </div>
       </main>
@@ -104,8 +103,7 @@ export default function Home() {
           }
           tableBody={
             <>
-
-              {filteredData.length && filteredData.map(user => (
+              {filteredData.length > 0 && filteredData.map(user => (
                 <TableRow key={user._id}>
                   <TableCell title={user.email} subtitle={user.realmId} />
                   <TableCell subtitle={user.confirmed || "false"} />

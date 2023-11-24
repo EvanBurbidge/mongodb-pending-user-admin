@@ -25,7 +25,6 @@ export async function FetchPendingUsers(token, groupId, appId, users = [], after
       if (data.length < 50) {
         return data;
       } else {
-        console.log('calling');
         return await FetchPendingUsers(token, groupId, appId, [...users, ...data], data[data.length - 1]._id)
       }
     }
@@ -37,12 +36,22 @@ export async function FetchPendingUsers(token, groupId, appId, users = [], after
 
 export async function ConfirmUser(token, groupId, appId, email) {
   try {
-    const { data } = await axios.get(`https://realm.mongodb.com/api/admin/v3.0/groups/${groupId}/apps/${appId}/user_registrations/user_registrations/by_email/${email}/confirm`, {
+    await axios.post(`https://realm.mongodb.com/api/admin/v3.0/groups/${groupId}/apps/${appId}/user_registrations/by_email/${email}/confirm`, {
       headers: { "Authorization": `Bearer ${token}` }
     });
-    if (data) {
-      return true;
-    }
+    return true;
+  } catch (e) {
+    console.error(e);
+    return false;
+  }
+}
+
+export async function DeleteUser(token, groupId, appId, email) {
+  try {
+    await axios.delete(`https://realm.mongodb.com/api/admin/v3.0/groups/${groupId}/apps/${appId}/user_registrations/user_registrations/by_email/${email}`, {
+      headers: { "Authorization": `Bearer ${token}` }
+    });
+    return true;
   } catch (e) {
     console.error(e);
     return false;
