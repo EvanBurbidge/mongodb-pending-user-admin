@@ -70,7 +70,6 @@ export default function Home() {
   }
 
   const removeUser = async (email, id) => {
-    console.log(id)
     setSyncLoading(true);
     try {
       const resp = await axios.post(getAbsoluteUrl('/api/mongo/delete-pending-user'), {
