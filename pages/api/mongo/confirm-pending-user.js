@@ -1,5 +1,4 @@
-import { supabase } from "@/utils/supabase";
-import { ConfirmUser, FetchPendingUsers, LoginToAtlas } from "@/utils/MongoDBAtlas";
+import { ConfirmUser, LoginToAtlas } from "@/utils/MongoDBAtlas";
 const {
   MONGODB_API_KEY,
   MONGODB_API_KEY_PRIVATE,
@@ -17,12 +16,18 @@ export default async function confirmPendingUser(req, resp) {
     return resp.status(401).json({ invalidCredientals: true });
   }
   try {
-
     const token = await LoginToAtlas(MONGODB_API_KEY, MONGODB_API_KEY_PRIVATE);
-    await ConfirmUser(token, GROUP_ID, APP_ID, email);
+    if (!token) {
+      return resp.status(401).json({ invalidCredientals: true, success: false });
+    }
+    const success = await ConfirmUser(token, GROUP_ID, APP_ID, email);
+    if (!success) {
+      return resp.status(500).json({ success: false })
+    }
+
     return resp.status(200).json({ success: true })
   } catch (e) {
     console.error(e);
-    return resp.status(500).json({ e });
+    return resp.status(500).json({ e, success: false });
   }
 }

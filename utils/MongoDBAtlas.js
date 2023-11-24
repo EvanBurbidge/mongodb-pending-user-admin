@@ -1,4 +1,9 @@
 import axios from "axios"
+import { supabase } from "./supabase";
+
+const getHeaders = (token) => ({
+  "Authorization": `Bearer ${token}`
+})
 
 export async function LoginToAtlas(apiKey, secretKey) {
   try {
@@ -34,10 +39,24 @@ export async function FetchPendingUsers(token, groupId, appId, users = [], after
   }
 }
 
+export async function GetAppIds(token, groupId) {
+  try {
+    const { data } = await axios.get(`https://realm.mongodb.com/api/admin/v3.0/groups/${groupId}/apps`, {
+      headers: getHeaders(token)
+    });
+    return data;
+  } catch (e) {
+    console.error(e);
+    return []
+  }
+}
+
+
+
 export async function ConfirmUser(token, groupId, appId, email) {
   try {
-    await axios.post(`https://realm.mongodb.com/api/admin/v3.0/groups/${groupId}/apps/${appId}/user_registrations/by_email/${email}/confirm`, {
-      headers: { "Authorization": `Bearer ${token}` }
+    await axios.post(`https://realm.mongodb.com/api/admin/v3.0/groups/${groupId}/apps/${appId}/user_registrations/by_email/${email}/confirm`, {}, {
+      headers: getHeaders(token)
     });
     return true;
   } catch (e) {
@@ -48,9 +67,7 @@ export async function ConfirmUser(token, groupId, appId, email) {
 
 export async function DeleteUser(token, groupId, appId, email) {
   try {
-    await axios.delete(`https://realm.mongodb.com/api/admin/v3.0/groups/${groupId}/apps/${appId}/user_registrations/user_registrations/by_email/${email}`, {
-      headers: { "Authorization": `Bearer ${token}` }
-    });
+    await axios.delete(`https://realm.mongodb.com/api/admin/v3.0/groups/${groupId}/apps/${appId}/user_registrations/by_email/${email}`, {}, { headers: { "Authorization": `Bearer ${token}` } });
     return true;
   } catch (e) {
     console.error(e);

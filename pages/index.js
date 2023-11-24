@@ -16,6 +16,7 @@ import { ThemeSupa } from '@supabase/auth-ui-shared'
 import { useUser, useSupabaseClient } from '@supabase/auth-helpers-react'
 import { Input } from '@thewebuiguy/components/lib/Input'
 import { InputGroup } from '@thewebuiguy/components/lib/InputGroup'
+import { toast } from 'react-toastify';
 
 
 const inter = Inter({ subsets: ['latin'] })
@@ -35,6 +36,10 @@ export default function Home() {
     setFilteredData(data);
   }
 
+  const getApps = () => {
+    axios.post(getAbsoluteUrl('/api/mongo/get-apps'));
+  }
+
   const syncLatestUsers = async () => {
     setSyncLoading(true);
     try {
@@ -47,12 +52,33 @@ export default function Home() {
     }
     setSyncLoading(false);
   }
-  const confirmUser = async (email) => {
+  const confirmUser = async (email, id) => {
     setSyncLoading(true);
     try {
-      const resp = await axios.post(getAbsoluteUrl('/api/mongo/confirm-pending-user', {
+      const resp = await axios.post(getAbsoluteUrl('/api/mongo/confirm-pending-user'), {
         email,
-      }));
+      });
+      await supabaseClient.from('PendingUsers').update({ confirmed: resp.data.success }).eq('id', id);
+      toast("User confirmed");
+      if (resp) {
+        fetchData();
+      }
+    } catch (e) {
+      console.error(e);
+    }
+    setSyncLoading(false);
+  }
+
+  const removeUser = async (email, id) => {
+    console.log(id)
+    setSyncLoading(true);
+    try {
+      const resp = await axios.post(getAbsoluteUrl('/api/mongo/delete-pending-user'), {
+        email,
+      });
+      await supabaseClient.from('PendingUsers').delete().eq('id', id);
+      toast("User deleted");
+      setFilter('');
       if (resp) {
         fetchData();
       }
@@ -116,14 +142,14 @@ export default function Home() {
             </TableRow>
           }
           tableBody={filteredData.length > 0 && filteredData.map(user => (
-            <TableRow key={user._id}>
+            <TableRow key={user.id}>
               <TableCell title={user.email} subtitle={user.realmId} />
               <TableCell subtitle={user.confirmed || "false"} />
               <TableCell>
                 <div className='flex justify-end'>
                   <Button
                     id={`confirm-${user.realmId}`}
-                    onClick={() => confirmUser(user.email)}
+                    onClick={() => confirmUser(user.email, user.id)}
                   >
                     Confirm
                   </Button>
@@ -131,7 +157,7 @@ export default function Home() {
                     type="error"
                     classNames='ml-2'
                     id={`delete-${user.realmId}`}
-                    onClick={() => removeUser(user.email)}
+                    onClick={() => removeUser(user.email, user.id)}
                   >
                     Delete
                   </Button>
