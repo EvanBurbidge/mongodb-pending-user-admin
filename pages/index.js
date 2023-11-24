@@ -47,6 +47,20 @@ export default function Home() {
     }
     setSyncLoading(false);
   }
+  const confirmUser = async (email) => {
+    setSyncLoading(true);
+    try {
+      const resp = await axios.post(getAbsoluteUrl('/api/mongo/confirm-pending-user', {
+        email,
+      }));
+      if (resp) {
+        fetchData();
+      }
+    } catch (e) {
+      console.error(e);
+    }
+    setSyncLoading(false);
+  }
 
   const handleSetFilter = debounce((e) => setFilter(e.target.value), 500);
 
@@ -101,26 +115,30 @@ export default function Home() {
               <TableHeader />
             </TableRow>
           }
-          tableBody={
-            <>
-              {filteredData.length > 0 && filteredData.map(user => (
-                <TableRow key={user._id}>
-                  <TableCell title={user.email} subtitle={user.realmId} />
-                  <TableCell subtitle={user.confirmed || "false"} />
-                  <TableCell>
-                    <div className='flex justify-end'>
-                      <Button>
-                        Confirm
-                      </Button>
-                      <Button type="error" classNames='ml-2'>
-                        Delete
-                      </Button>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </>
-          }
+          tableBody={filteredData.length > 0 && filteredData.map(user => (
+            <TableRow key={user._id}>
+              <TableCell title={user.email} subtitle={user.realmId} />
+              <TableCell subtitle={user.confirmed || "false"} />
+              <TableCell>
+                <div className='flex justify-end'>
+                  <Button
+                    id={`confirm-${user.realmId}`}
+                    onClick={() => confirmUser(user.email)}
+                  >
+                    Confirm
+                  </Button>
+                  <Button
+                    type="error"
+                    classNames='ml-2'
+                    id={`delete-${user.realmId}`}
+                    onClick={() => removeUser(user.email)}
+                  >
+                    Delete
+                  </Button>
+                </div>
+              </TableCell>
+            </TableRow>
+          ))}
         />
       </div>
 
