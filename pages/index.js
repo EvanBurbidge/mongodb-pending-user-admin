@@ -11,20 +11,30 @@ import { ButtonOutline } from '@thewebuiguy/components/lib/ButtonOutline';
 import { TableHeader } from '@thewebuiguy/components/lib/TableHeader';
 import { SearchInput } from '@thewebuiguy/components/lib/SearchInput';
 import { OverlayLoader } from '@thewebuiguy/components/lib/OverlayLoader';
-import { supabase } from '@/utils/supabase';
+import { Auth } from '@supabase/auth-ui-react'
+import { ThemeSupa } from '@supabase/auth-ui-shared'
+import { useUser, useSupabaseClient } from '@supabase/auth-helpers-react'
+import { Input } from '@thewebuiguy/components/lib/Input'
+import { InputGroup } from '@thewebuiguy/components/lib/InputGroup'
+
 
 const inter = Inter({ subsets: ['latin'] })
 
 export default function Home() {
-  const [filter, setFilter] = useState('')
+  const user = useUser()
+  const [filter, setFilter] = useState('');
+  const supabaseClient = useSupabaseClient()
   const [filteredData, setFilteredData] = useState([]);
   const [syncLoading, setSyncLoading] = useState(false);
 
+  console.log(user);
+
   const fetchData = async () => {
-    const { data } = await supabase
+    const { data } = await supabaseClient
       .from('PendingUsers')
       .select()
       .ilike('email', `%${filter}%`);
+    console.log(data);
     setFilteredData(data);
   }
 
@@ -44,8 +54,26 @@ export default function Home() {
   const handleSetFilter = debounce((e) => setFilter(e.target.value), 500);
 
   useEffect(() => {
-    fetchData();
+    if (user) {
+      fetchData();
+    }
   }, [filter]);
+
+  if (!user)
+    return (
+      <main
+        className={`flex min-h-screen justify-center items-center bg-primary flex-col ${inter.className}`}
+      >
+        <div className="bg-white rounded-md w-1/4 p-10 h-auto">
+          <Auth
+            redirectTo="http://localhost:3000/"
+            appearance={{ theme: ThemeSupa }}
+            supabaseClient={supabaseClient}
+            providers={[]}
+          />
+        </div>
+      </main>
+    )
 
   return (
     <main
@@ -55,9 +83,14 @@ export default function Home() {
         <div className="w-1/2">
           <SearchInput onChange={handleSetFilter} placeholder='search users' />
         </div>
-        <Button onClick={syncLatestUsers} id="user-sync" classNames='border border-white'>
-          Sync latest users
-        </Button>
+        <div>
+          <Button onClick={syncLatestUsers} id="user-sync" classNames='border border-white'>
+            Sync latest users
+          </Button>
+          <Button onClick={() => supabaseClient.auth.signOut()} id="user-sync" classNames='ml-2 hover:text-gray-200'>
+            Sign out
+          </Button>
+        </div>
       </div>
       <div className="px-2 mt-2">
         {syncLoading && <OverlayLoader />}
@@ -65,8 +98,8 @@ export default function Home() {
           tableHeader={
             <TableRow>
               <TableHeader title="email" />
-              <TableHeader title="id" />
               <TableHeader title="confirmed" />
+              <TableHeader />
             </TableRow>
           }
           tableBody={
@@ -74,9 +107,18 @@ export default function Home() {
 
               {filteredData.length && filteredData.map(user => (
                 <TableRow key={user._id}>
-                  <TableCell title={user.email} />
-                  <TableCell subtitle={user.realmId} />
+                  <TableCell title={user.email} subtitle={user.realmId} />
                   <TableCell subtitle={user.confirmed || "false"} />
+                  <TableCell>
+                    <div className='flex justify-end'>
+                      <Button>
+                        Confirm
+                      </Button>
+                      <Button type="error" classNames='ml-2'>
+                        Delete
+                      </Button>
+                    </div>
+                  </TableCell>
                 </TableRow>
               ))}
             </>
