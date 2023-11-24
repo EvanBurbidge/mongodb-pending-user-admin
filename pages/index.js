@@ -70,6 +70,22 @@ export default function Home() {
     setSyncLoading(false);
   }
 
+  const resendConfirmation = async (email, id) => {
+    setSyncLoading(true);
+    try {
+      const resp = await axios.post(getAbsoluteUrl('/api/mongo/send-confirmation'), {
+        email,
+      });
+      toast("Confirmation email sent");
+      if (resp) {
+        fetchData();
+      }
+    } catch (e) {
+      console.error(e);
+    }
+    setSyncLoading(false);
+  }
+
   const removeUser = async (email, id) => {
     setSyncLoading(true);
     try {

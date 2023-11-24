@@ -63,6 +63,18 @@ export async function ConfirmUser(token, groupId, appId, email) {
   }
 }
 
+export async function ResendConfirmation(token, groupId, appId, email) {
+  try {
+    await axios.post(`https://realm.mongodb.com/api/admin/v3.0/groups/${groupId}/apps/${appId}/user_registrations/by_email/${email}/send_confirm`, {}, {
+      headers: getHeaders(token)
+    });
+    return true;
+  } catch (e) {
+    console.error(e);
+    return false;
+  }
+}
+
 export async function DeleteUser(token, groupId, appId, email) {
   try {
     const resp = await axios.delete(`https://realm.mongodb.com/api/admin/v3.0/groups/${groupId}/apps/${appId}/user_registrations/by_email/${email}`, { headers: { "Authorization": `Bearer ${token}` } });
