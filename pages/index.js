@@ -8,6 +8,7 @@ import { ThemeSupa } from '@supabase/auth-ui-shared';
 import { getAbsoluteUrl } from '@/utils/getAbsoluteUrl';
 import { Table } from '@thewebuiguy/components/lib/Table';
 import { Button } from '@thewebuiguy/components/lib/Button';
+import { ButtonOutline } from '@thewebuiguy/components/lib/ButtonOutline';
 import { TableRow } from '@thewebuiguy/components/lib/TableRow';
 import { TableCell } from '@thewebuiguy/components/lib/TableCell';
 
@@ -167,16 +168,23 @@ export default function Home() {
                     id={`confirm-${user.realmId}`}
                     onClick={() => confirmUser(user.email, user.id)}
                   >
-                    Confirm
+                    Confirm user
                   </Button>
-                  <Button
+                  <ButtonOutline
+                    classNames='ml-2'
+                    id={`confirm-${user.realmId}`}
+                    onClick={() => resendConfirmation(user.email, user.id)}
+                  >
+                    Resend Email
+                  </ButtonOutline>
+                  <ButtonOutline
                     type="error"
                     classNames='ml-2'
                     id={`delete-${user.realmId}`}
                     onClick={() => removeUser(user.email, user.id)}
                   >
                     Delete
-                  </Button>
+                  </ButtonOutline>
                 </div>
               </TableCell>
             </TableRow>
